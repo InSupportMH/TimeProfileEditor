@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>TimeProfileEditor.Harness</AssemblyName>
+    <RootNamespace>TimeProfileEditor.Harness</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Same platform version as the plugin, so the harness exercises the API surface that
+         actually ships rather than a newer one the target VMS may not have. -->
+    <PackageReference Include="MilestoneSystems.VideoOS.Platform.SDK" Version="$(MipSdkVersion)" />
+    <ProjectReference Include="..\..\src\TimeProfileEditor\TimeProfileEditor.csproj" />
+  </ItemGroup>
+
+</Project>

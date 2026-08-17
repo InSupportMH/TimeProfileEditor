@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>TimeProfileEditor.Server</AssemblyName>
+    <RootNamespace>TimeProfileEditor</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>1.0.2</Version>
+    <Company>Nordic InSupport Nätverksvideo AB</Company>
+    <Product>Tidsprofiler</Product>
+    <AssemblyTitle>XProtect Event Server - tidsprofiler</AssemblyTitle>
+    <!-- Same reason as the client project: the host already loads its own VideoOS assemblies,
+         and a second set in the plugin folder makes MIP fail to bind. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MilestoneSystems.VideoOS.Platform" Version="$(MipSdkVersion)" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <!--
+    Shared with the client by linking the source rather than by extracting an assembly.
+
+    An assembly would have to be deployed into both plugin folders and kept in step across two
+    MSIs; linked source cannot drift, because a change that breaks one side fails the build of
+    the other. The files listed here are the UI-free ones - anything referencing WPF stays behind.
+  -->
+  <ItemGroup>
+    <Compile Include="..\TimeProfileEditor\PluginIds.cs" Link="Shared\PluginIds.cs" />
+    <Compile Include="..\TimeProfileEditor\Protocol\ServerProtocol.cs" Link="Shared\ServerProtocol.cs" />
+    <Compile Include="..\TimeProfileEditor\Model\ScheduleEntry.cs" Link="Shared\Model\ScheduleEntry.cs" />
+    <Compile Include="..\TimeProfileEditor\Model\TimeProfileInfo.cs" Link="Shared\Model\TimeProfileInfo.cs" />
+    <Compile Include="..\TimeProfileEditor\Services\SaveOutcome.cs" Link="Shared\Services\SaveOutcome.cs" />
+    <Compile Include="..\TimeProfileEditor\Services\TimeProfileRepository.cs" Link="Shared\Services\TimeProfileRepository.cs" />
+    <Compile Include="..\TimeProfileEditor\Services\ChangeLog.cs" Link="Shared\Services\ChangeLog.cs" />
+    <Compile Include="..\TimeProfileEditor\Security\JwtReader.cs" Link="Shared\Security\JwtReader.cs" />
+    <Compile Include="..\TimeProfileEditor\Security\PluginSecurity.cs" Link="Shared\Security\PluginSecurity.cs" />
+    <Compile Include="..\TimeProfileEditor\Security\SystemEdition.cs" Link="Shared\Security\SystemEdition.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="plugin.def">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

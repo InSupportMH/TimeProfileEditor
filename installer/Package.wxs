@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <!--
+    Installs the Tidsprofiler MIP plugin into the shared Milestone plugin folder.
+
+    The same package belongs on every machine running Smart Client *and* on the machine
+    running Management Client - the latter is what registers the role permissions. See
+    README.md, "Installation och distribution".
+
+    Version and source folder are supplied by build/build-installer.ps1 so the MSI version
+    always follows the assembly rather than drifting from it.
+  -->
+  <!--
+    One UpgradeCode across every edition, on purpose: the packages differ only in which
+    permission model they use, and a machine must never end up with two of them installed.
+    Installing one therefore replaces the other.
+  -->
+  <Package Name="XProtect Smart Client - Tidsprofiler ($(EditionName))"
+           Manufacturer="Milestone MIP-plugin"
+           Version="$(Version)"
+           UpgradeCode="7b4e2a19-6c3d-4f81-9e52-0a8d71c6b3f4"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <!--
+      Reinstalling over an existing copy replaces it instead of erroring or stacking up.
+      AllowSameVersionUpgrades trades ICE61 (which wants MaxVersion below the current one) for
+      the ability to push a rebuilt 1.0.0 over an installed 1.0.0 - worth it while the plugin
+      is still being rolled out, since otherwise every fix would need a version bump to deploy.
+    -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="En nyare version av [ProductName] är redan installerad. Avinstallera den först om du vill gå tillbaka." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="$(InstallerDir)\plugin.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="https://doc.developer.milestonesys.com/" />
+    <!-- ARPNOMODIFY is already set by WixUI_Minimal; setting it again is a build error. -->
+
+    <!--
+      Files land next to the other MIP plugins. Only the leaf folder is ours, so uninstall
+      removes TimeProfileEditor and leaves Milestone\MIPPlugins alone - other plugins and
+      Milestone's own installers share those two levels.
+    -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="MilestoneFolder" Name="Milestone">
+        <Directory Id="MipPluginsFolder" Name="MIPPlugins">
+          <Directory Id="INSTALLFOLDER" Name="TimeProfileEditor" />
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="PluginFiles" Directory="INSTALLFOLDER">
+      <Component Id="PluginAssembly" Guid="2d8f5c31-9a47-4be6-b012-6f3e84d5a97c">
+        <File Id="TimeProfileEditorDll" Source="$(BinDir)\TimeProfileEditor.dll" KeyPath="yes" />
+      </Component>
+      <Component Id="PluginManifest" Guid="c4a91e07-53fb-4d28-8c96-1e7b2a604fd3">
+        <!-- MIP only discovers a folder that contains this file. -->
+        <File Id="PluginDef" Source="$(BinDir)\plugin.def" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="Tidsprofiler" Level="1">
+      <ComponentGroupRef Id="PluginFiles" />
+    </Feature>
+
+    <ui:WixUI Id="WixUI_Minimal" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(InstallerDir)\notice.rtf" />
+
+  </Package>
+</Wix>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <!--
+    Installs the Tidsprofiler Event Server component.
+
+    This is not the plugin. It belongs on exactly one machine - the one running Event Server - and
+    on none of the workstations. It exists because only XProtect Corporate can grant a role the
+    right to write configuration: on Expert and Professional+ the Management Server refuses an
+    operator's write, and this component performs it for them after checking, against the same
+    tick boxes under Roles, that they were granted it.
+
+    On Corporate it is not needed at all. The client writes directly there and never sends a
+    message. Installing it anyway does no harm - it simply never gets asked.
+
+    A separate package from the client, deliberately, with its own UpgradeCode. They go to
+    different machines, are updated on different occasions, and a single package would either put
+    an administrative component on every workstation or make the workstation package refuse to
+    install without an Event Server.
+  -->
+  <Package Name="XProtect Event Server - Tidsprofiler"
+           Manufacturer="Milestone MIP-plugin"
+           Version="$(Version)"
+           UpgradeCode="9c5d3e18-2f7a-4b60-a3d9-8e14c7b52f6d"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="En nyare version av [ProductName] är redan installerad. Avinstallera den först om du vill gå tillbaka." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="$(InstallerDir)\plugin.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="https://doc.developer.milestonesys.com/" />
+
+    <!--
+      Refuse to install where there is no Event Server.
+
+      The component is only ever loaded from the Event Server's own plugin folder, so on a machine
+      without one the files would sit somewhere nothing scans. That failure is silent and looks
+      exactly like the component not working, which is a far worse outcome than an installer that
+      declines and says why.
+
+      The search is the same fixed path the files are installed to, so it guards precisely the
+      assumption being made. An Event Server installed somewhere else fails this check rather than
+      being installed to the wrong place - see the readme for the manual route in that case.
+    -->
+    <Property Id="EVENTSERVERPRESENT">
+      <DirectorySearch Id="EventServerSearch"
+                       Path="[ProgramFiles64Folder]Milestone\XProtect Event Server" />
+    </Property>
+
+    <Launch Condition="EVENTSERVERPRESENT"
+            Message="Ingen XProtect Event Server hittades i C:\Program Files\Milestone\XProtect Event Server. Den här komponenten ska bara installeras på servern som kör Event Server - inte på arbetsstationer." />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="MilestoneFolder" Name="Milestone">
+        <Directory Id="EventServerFolder" Name="XProtect Event Server">
+          <Directory Id="MipPluginsFolder" Name="MIPPlugins">
+            <!--
+              The folder name is not decoration. MIP scans this directory and loads each subfolder
+              that holds a plugin.def; the name is what an administrator sees in a log line when
+              they are working out which component is which.
+            -->
+            <Directory Id="INSTALLFOLDER" Name="TimeProfileEditor.Server" />
+          </Directory>
+        </Directory>
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="ServerFiles" Directory="INSTALLFOLDER">
+      <Component Id="ServerAssembly" Guid="6e2b8f45-c193-4a07-9d5e-3b81f0a7c264">
+        <File Id="ServerDll" Source="$(BinDir)\TimeProfileEditor.Server.dll" KeyPath="yes" />
+
+        <!--
+          The Event Server holds this assembly open while it runs, so it has to come down before
+          the file can be replaced and go up again afterwards - on uninstall as well, or the folder
+          is removed while the plugin is still loaded.
+
+          It is slow. Measured on a live system, a stop can take several minutes, which is longer
+          than Windows Installer is willing to wait; if it runs out of patience the installer falls
+          back to its files-in-use handling and may ask for a reboot. Stopping the service by hand
+          first avoids that entirely, and the readme says so.
+        -->
+        <ServiceControl Id="EventServerService"
+                        Name="MilestoneEventServerService"
+                        Stop="both"
+                        Start="both"
+                        Wait="yes" />
+      </Component>
+
+      <Component Id="ServerManifest" Guid="af307d61-45e8-4c92-b7a3-05fc2e916b8d">
+        <!-- MIP only discovers a folder that contains this file. It is also what keeps the
+             component out of the Smart Client: <load env="Service"/>. -->
+        <File Id="ServerPluginDef" Source="$(BinDir)\plugin.def" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <Feature Id="Main" Title="Tidsprofiler - serverkomponent" Level="1">
+      <ComponentGroupRef Id="ServerFiles" />
+    </Feature>
+
+    <ui:WixUI Id="WixUI_Minimal" />
+    <WixVariable Id="WixUILicenseRtf" Value="$(InstallerDir)\notice.rtf" />
+
+  </Package>
+</Wix>

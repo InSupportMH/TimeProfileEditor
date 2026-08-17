@@ -1,0 +1,17 @@
+<plugin>
+   <file name="TimeProfileEditor.dll"/>
+
+   <!-- MIP reads this with SelectSingleNode("plugin/load/@env"), so only the first
+        <load> element counts - both environments must be listed in this one string.
+
+        The host environment name is lowercased and substring-matched, and the Smart
+        Client is spelled "client". "SmartClient Administration" therefore matches:
+          * SmartClient    -> the operator UI where the plugin is used
+          * Administration -> the Management Client, which is what registers the
+                              plugin's security actions (the "Tidsprofiler" role tab)
+        and excludes Standalone, Service and ManagementServer.
+
+        Dropping "Administration" would make the plugin invisible to the Management
+        Client, and the permissions could then never be granted to a role. -->
+   <load env="SmartClient Administration"/>
+</plugin>

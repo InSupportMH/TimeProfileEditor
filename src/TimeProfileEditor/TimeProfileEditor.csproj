@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>TimeProfileEditor</AssemblyName>
+    <RootNamespace>TimeProfileEditor</RootNamespace>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <Version>1.7.0</Version>
+    <Company>Nordic InSupport Nätverksvideo AB</Company>
+    <Product>Tidsprofiler</Product>
+    <AssemblyTitle>XProtect Smart Client - redigering av tidsprofiler</AssemblyTitle>
+    <!-- The Smart Client already loads its own VideoOS assemblies. Shipping copies in the
+         plugin folder makes MIP load a second set and the plugin fails to bind. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <!-- The version lives in Directory.Build.props; see the note there before changing it. -->
+  <ItemGroup>
+    <PackageReference Include="MilestoneSystems.VideoOS.Platform" Version="$(MipSdkVersion)" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>TimeProfileEditor.Harness</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!--
+    What this build is: Normal (the product) or Measurement (no permission check inside the
+    plugin, so a refusal can only have come from the Management Server).
+
+    There is no per-product edition any more. The plugin's own security namespace exists on every
+    XProtect tier, so one binary is correct everywhere - see EditionMode for the mistake that used
+    to be encoded here.
+  -->
+  <PropertyGroup>
+    <Edition Condition="'$(Edition)' == ''">Normal</Edition>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadata">
+      <_Parameter1>Edition</_Parameter1>
+      <_Parameter2>$(Edition)</_Parameter2>
+    </AssemblyAttribute>
+    <!-- Baked in so a support question can be answered from the installed file: a plugin only
+         loads in the XProtect version it was compiled against or newer. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadata">
+      <_Parameter1>MipSdk</_Parameter1>
+      <_Parameter2>$(MipSdkVersion)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\plugin.def" Link="plugin.def">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
+
+

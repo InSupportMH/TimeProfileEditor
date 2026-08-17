@@ -1,0 +1,12 @@
+<plugin>
+   <file name="TimeProfileEditor.Server.dll"/>
+
+   <!-- MIP lowercases this string and substring-matches the host's environment name against it
+        (VideoOS.Platform.Util.PluginManager.LoadFromFolder). "Service" is the XProtect Event
+        Server, and nothing else matches it - so this component never loads into a Smart Client
+        or a Management Client, where it would run with the operator's rights and be pointless.
+
+        Leaving the load line out entirely would load it everywhere. That is the documented
+        default, and it is the wrong one here. -->
+   <load env="Service"/>
+</plugin>

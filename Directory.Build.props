@@ -1,0 +1,23 @@
+<Project>
+
+  <!--
+    The MIP SDK the whole solution compiles against.
+
+    MIP plug-ins are forward compatible but not backward compatible: one built against a given
+    MIP SDK loads in that XProtect version and every later one, never an earlier one. Building
+    against the oldest version we intend to support is therefore what makes a single package work
+    everywhere, so this is deliberately not the newest SDK available.
+
+    25.1 is the floor because RolesTabName - the Management Client tab that publishes the plugin's
+    permissions, which the Corporate model depends on - does not exist in 24.2. That covers
+    XProtect 2025 R1 and everything after it, including 2025 R2 and 2026 R1.
+
+    Raise it only to reach an API that genuinely does not exist in the older SDK, and only after
+    deciding to drop the older VMS versions. Newer platform capabilities that are merely nice to
+    have are reached reflectively instead - see PluginSecurity.TryDetectNamespace.
+  -->
+  <PropertyGroup>
+    <MipSdkVersion Condition="'$(MipSdkVersion)' == ''">25.1.3</MipSdkVersion>
+  </PropertyGroup>
+
+</Project>

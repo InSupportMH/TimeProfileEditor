@@ -55,10 +55,8 @@ namespace TimeProfileEditor
 
         // Configured, not Effective: this is read before there is a server to ask about a licence,
         // and a measurement build is pinned at compile time so the metadata already answers it.
-        public override string Name => SystemEdition.Configured == EditionMode.Measurement
-            ? "Tidsprofiler (MÄTLÄGE)"
-            : "Tidsprofiler";
-
+        public override string Name => "TimeProfileEditor";
+            
         // Both read from the assembly rather than written out here. Management Client shows these
         // in its plugin list, the information panel in Smart Client shows the same two facts, and
         // a hand-maintained copy is how the version on one screen ends up being 1.0.0.0 while the

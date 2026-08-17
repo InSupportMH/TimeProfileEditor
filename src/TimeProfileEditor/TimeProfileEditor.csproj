@@ -59,6 +59,26 @@
     </None>
   </ItemGroup>
 
+  <!-- Debug builds drop the plugin where MIP looks, so F5 against a running Smart Client
+       picks up the new binary without a separate deploy. Release still goes through MSI /
+       deploy.ps1. Requires write access to Program Files (close Smart Client if the DLL is locked). -->
+  <Target Name="CopyToLocalMipPlugins" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug'">
+    <PropertyGroup>
+      <_MipPluginFolder>C:\Program Files\Milestone\MIPPlugins\TimeProfileEditor</_MipPluginFolder>
+    </PropertyGroup>
+    <ItemGroup>
+      <_MipPluginFiles Include="$(TargetPath)" />
+      <_MipPluginFiles Include="$(TargetDir)plugin.def" />
+      <_MipPluginFiles Include="$(TargetDir)$(TargetName).pdb" Condition="Exists('$(TargetDir)$(TargetName).pdb')" />
+    </ItemGroup>
+    <MakeDir Directories="$(_MipPluginFolder)" Condition="!Exists('$(_MipPluginFolder)')" />
+    <Copy SourceFiles="@(_MipPluginFiles)"
+          DestinationFolder="$(_MipPluginFolder)"
+          SkipUnchangedFiles="true"
+          OverwriteReadOnlyFiles="true" />
+    <Message Importance="high" Text="Copied Debug plugin to $(_MipPluginFolder)" />
+  </Target>
+
 </Project>
 
 

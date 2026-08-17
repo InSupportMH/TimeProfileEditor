@@ -40,9 +40,9 @@ namespace TimeProfileEditor.Server
 
         public override Guid Id => ServerIds.PluginDefinition;
 
-        public override string Name => "Tidsprofiler (serverkomponent)";
+        public override string Name => "TimeProfileEditor (Event Server)";
 
-        public override string Manufacturer => "Milestone MIP-plugin";
+        public override string Manufacturer => "InSupport";
 
         public override string VersionString =>
             typeof(TimeProfileServerPluginDefinition).Assembly.GetName().Version.ToString();
